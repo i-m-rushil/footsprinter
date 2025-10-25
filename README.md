@@ -1,92 +1,338 @@
-# FootSprinter 🔍
+# FootSprinter v2.0 🔍
 
-**FootSprinter** is a comprehensive OSINT (Open Source Intelligence) footprinting toolkit designed for Kali Linux. It automates passive reconnaissance and information gathering for security research and penetration testing.
+<p align="center">
+  <img src="https://img.shields.io/badge/Version-2.0-blue.svg" alt="Version 2.0">
+  <img src="https://img.shields.io/badge/Platform-Kali%20Linux-purple.svg" alt="Platform">
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/Maintained-Yes-success.svg" alt="Maintained">
+</p>
 
-## 🎯 Features
+**FootSprinter v2.0** is the most comprehensive OSINT (Open Source Intelligence) footprinting and vulnerability assessment framework designed for security professionals. It combines multiple reconnaissance techniques with automated vulnerability scanning to provide a complete security posture analysis.
 
-- **Certificate Transparency**: Discovers subdomains via crt.sh
-- **Subdomain Enumeration**: Uses multiple tools (assetfinder, subfinder, amass)
-- **Live Host Detection**: Probes discovered subdomains with httpx/httprobe
-- **URL Harvesting**: Collects historical URLs from Wayback Machine and other sources
-- **Intelligent Filtering**: Uses GF patterns to identify potential vulnerabilities (XSS, SQLi, LFI)
-- **SSL Certificate Analysis**: Dumps SSL certificate information
-- **Screenshots**: Optional website screenshotting with gowitness
-- **Beautiful CLI Interface**: Color-coded output with ASCII art banner
+## 🚀 Key Features
+
+### 1. **Company Intelligence Gathering**
+- WHOIS information extraction
+- DNS record enumeration (A, MX, TXT, NS, SOA)
+- Certificate transparency analysis
+- IP geolocation and hosting information
+- Organization details and registration data
+
+### 2. **Advanced Domain Enumeration**
+- Multi-tool subdomain discovery (Subfinder, Assetfinder, Amass)
+- Certificate transparency mining
+- Live host detection with httpx
+- Weak domain identification
+- Test/staging/development environment discovery
+
+### 3. **Comprehensive Port Scanning**
+- Full TCP port scanning with service detection
+- UDP scanning for common services
+- Banner grabbing and version identification
+- XML export for integration with other tools
+
+### 4. **Technology Stack Detection**
+- Web technology fingerprinting
+- Version identification for frameworks and servers
+- HTTP security headers analysis
+- SSL/TLS configuration assessment
+- CMS and plugin detection
+
+### 5. **Vulnerability Assessment**
+- Nuclei template-based scanning (3000+ templates)
+- Nikto web server vulnerability detection
+- Common misconfiguration checks
+- Exposed sensitive files detection
+- Security best practices validation
+
+### 6. **Exploitation Analysis**
+- Detailed exploitation vectors for each vulnerability
+- Proof-of-concept examples
+- Attack scenario descriptions
+- Severity classification
+
+### 7. **Remediation Recommendations**
+- Step-by-step patching guides
+- Security best practices
+- Configuration hardening tips
+- Framework-specific fixes
+
+### 8. **Risk Assessment & Scoring**
+- Automated risk scoring (0-100 scale)
+- Business impact analysis
+- CVSS-aligned severity ratings
+- Compliance considerations (GDPR, PCI DSS, HIPAA, SOC 2)
+
+### 9. **Professional Reporting**
+- Beautiful HTML report with interactive elements
+- Executive summary with statistics
+- Detailed findings with evidence
+- Prioritized remediation roadmap
+- Easy to share with stakeholders
 
 ## 📋 Requirements
 
-- Kali Linux or Debian-based system
-- Root/sudo privileges
-- Internet connection
+- **Operating System**: Kali Linux, Debian, or Ubuntu
+- **Privileges**: Root/sudo access required
+- **Internet Connection**: Required for tool installation and scanning
+- **Disk Space**: ~2GB for tools and dependencies
 
-### Tools Installed Automatically
+## 🛠️ Installation
 
-**APT Packages:**
-- amass, gobuster, git, jq, python3-pip, curl, openssl
-
-**Go-based Tools:**
-- subfinder, assetfinder, waybackurls, gau, gf, httprobe, httpx, anew
-
-## 🚀 Usage
+FootSprinter automatically installs all dependencies on first run, but you can also install manually:
 
 ```bash
-# Make the script executable
+# Clone the repository
+git clone https://github.com/i-m-rushil/footsprinter.git
+cd footsprinter
+
+# Make executable
 chmod +x footsprinter.sh
 
-# Run the script (will auto-request sudo if needed)
-./footsprinter.sh
+# Run (will auto-install dependencies)
+sudo ./footsprinter.sh --url target.com
 ```
 
-When prompted, enter the target domain (e.g., `example.com`).
+### Manual Dependency Installation
+
+```bash
+# APT packages
+sudo apt update
+sudo apt install -y nmap whois curl wget git jq python3 python3-pip \
+                    dnsutils openssl amass gobuster nikto whatweb
+
+# Go-based tools (installed automatically by script)
+# - subfinder, httpx, nuclei, naabu, assetfinder, httprobe
+# - waybackurls, gau, anew, katana
+```
+
+## 📖 Usage
+
+### Basic Usage
+
+```bash
+# Simple scan
+sudo ./footsprinter.sh --url example.com
+
+# Full comprehensive scan
+sudo ./footsprinter.sh --url example.com --fullscan
+
+# Stealth scan with delays
+sudo ./footsprinter.sh --url target.com --interval 3 --changeheaders
+
+# All options combined
+sudo ./footsprinter.sh --url target.com --fullscan --interval 2 --changeheaders
+```
+
+### Command-Line Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--url <domain>` | Target domain or URL (REQUIRED) | - |
+| `--fullscan` | Enable deep comprehensive scanning | false |
+| `--interval <seconds>` | Delay between requests (stealth mode) | 1 |
+| `--changeheaders` | Randomize User-Agent headers | false |
+| `-h, --help` | Show usage information | - |
+
+### Examples
+
+**Basic reconnaissance:**
+```bash
+sudo ./footsprinter.sh --url example.com
+```
+
+**Full security assessment:**
+```bash
+sudo ./footsprinter.sh --url target.com --fullscan
+```
+
+**Stealth mode (slower, harder to detect):**
+```bash
+sudo ./footsprinter.sh --url target.com --interval 5 --changeheaders
+```
 
 ## 📂 Output Structure
 
 ```
-FootSprinter_[domain]_[timestamp]/
-├── raw/
-│   ├── crt_sh.json           # Certificate transparency results
-│   ├── crt_subs.txt          # Subdomains from crt.sh
-│   ├── assetfinder.txt       # Assetfinder results
-│   ├── subfinder.txt         # Subfinder results
-│   ├── amass_passive.txt     # Amass passive scan
-│   ├── wayback_urls.txt      # Wayback Machine URLs
-│   ├── gau_urls.txt          # GetAllUrls results
-│   └── ssl_certs.txt         # SSL certificate dumps
-└── final/
-    ├── all_subs.txt          # All discovered subdomains
-    ├── live_hosts.txt        # Live/responding hosts
-    ├── all_urls.txt          # All harvested URLs
-    ├── xss_urls.txt          # Potential XSS endpoints
-    ├── sqli_urls.txt         # Potential SQLi endpoints
-    ├── lfi_urls.txt          # Potential LFI endpoints
-    ├── interesting_urls.txt  # Other interesting URLs
-    └── gowitness/            # Screenshots (if enabled)
+FootSprinter_example.com_2025-10-25_120000/
+├── raw/                                    # Raw tool outputs
+│   ├── whois.txt                          # WHOIS data
+│   ├── dns_records.txt                    # DNS information
+│   ├── crt_sh.json                        # Certificate transparency
+│   ├── subfinder.txt                      # Subfinder results
+│   ├── assetfinder.txt                    # Assetfinder results
+│   ├── amass.txt                          # Amass results
+│   ├── nmap_scan.txt                      # Nmap output
+│   ├── whatweb.txt                        # Technology detection
+│   ├── nuclei_results.txt                 # Vulnerability findings
+│   ├── nikto_results.txt                  # Nikto scan results
+│   ├── wayback_urls.txt                   # Historical URLs
+│   └── ...
+├── final/                                 # Processed results
+│   ├── company_info.txt                   # Company intelligence
+│   ├── all_subdomains.txt                 # All discovered subdomains
+│   ├── live_hosts.txt                     # Live responding hosts
+│   ├── weak_domains.txt                   # Potentially weak domains
+│   ├── open_ports.txt                     # Open ports summary
+│   ├── technology_stack.txt               # Tech stack summary
+│   ├── vulnerabilities.txt                # Vulnerability summary
+│   ├── exploitation_analysis.txt          # Exploitation guide
+│   ├── risk_assessment.txt                # Risk analysis
+│   └── ...
+├── FootSprinter_Report_example.com_[timestamp].html  # Main HTML report
+└── SUMMARY.txt                            # Quick text summary
 ```
 
-## 🔒 Legal Notice
+## 🎯 What Makes FootSprinter Unique?
 
-**⚠️ IMPORTANT:** This tool is for authorized security testing and research only. Always ensure you have explicit permission from the target domain owner before running FootSprinter. Unauthorized scanning may be illegal in your jurisdiction.
+### 1. **All-in-One Solution**
+Unlike other tools that focus on a single aspect, FootSprinter provides complete coverage from reconnaissance to risk assessment.
 
-## 🎨 Author
+### 2. **Professional Reporting**
+Generate presentation-ready HTML reports that can be shared directly with management and stakeholders.
 
-**Aarham Labs** (Rushil P. Shah)
+### 3. **Automated Dependency Management**
+No more manual tool installation. FootSprinter installs and configures everything automatically.
 
-## 🛠️ Next Steps After Running
+### 4. **Intelligent Analysis**
+Beyond just finding vulnerabilities, FootSprinter provides exploitation analysis, remediation guides, and business impact assessment.
 
-1. Import `all_urls.txt` into Burp Suite or your preferred proxy
-2. Review `live_hosts.txt` for admin/login panels
-3. Validate GF matches to reduce false positives
-4. Consider running non-destructive nuclei templates (with consent)
+### 5. **Compliance Focused**
+Risk assessments include compliance considerations for GDPR, PCI DSS, HIPAA, and other frameworks.
 
-## 📝 License
+### 6. **Continuous Updates**
+Nuclei templates are automatically updated, ensuring you have the latest vulnerability checks.
 
-This project is open source. Use responsibly and ethically.
+## 🔒 Legal Notice & Ethics
+
+**⚠️ CRITICAL WARNING:**
+
+This tool is designed for **authorized security testing only**. You must have **explicit written permission** from the target organization before running FootSprinter.
+
+**Illegal use includes:**
+- Scanning systems you don't own or control
+- Testing without proper authorization
+- Using findings for malicious purposes
+- Accessing systems without permission
+
+**Legal consequences:**
+- Criminal charges under Computer Fraud and Abuse Act (CFAA)
+- Civil liability and lawsuits
+- Professional license revocation
+- Imprisonment and fines
+
+**Use FootSprinter responsibly:**
+- ✅ Your own systems and infrastructure
+- ✅ Client systems with signed agreements
+- ✅ Bug bounty programs with defined scope
+- ✅ Authorized penetration testing engagements
+
+## 📊 Sample Report
+
+The generated HTML report includes:
+
+- 📈 Executive dashboard with key metrics
+- 🏢 Company and infrastructure intelligence
+- 🌐 Complete domain/subdomain mapping
+- 🔌 Port scan results with service identification
+- ⚙️ Technology stack with version information
+- 🛡️ Vulnerability findings with severity ratings
+- 💥 Exploitation vectors and attack scenarios
+- 🔧 Detailed remediation recommendations
+- 📉 Risk scoring and business impact analysis
+- ✅ Compliance considerations
+
+## 🎨 Banner Design
+
+FootSprinter v2.0 features a professional ASCII art banner similar to Metasploit, providing a distinctive and recognizable interface.
+
+## 🔧 Tools Integrated
+
+FootSprinter leverages the following industry-standard tools:
+
+**Subdomain Enumeration:**
+- Subfinder (ProjectDiscovery)
+- Assetfinder (Tomnomnom)
+- Amass (OWASP)
+
+**HTTP Analysis:**
+- httpx (ProjectDiscovery)
+- httprobe (Tomnomnom)
+- WhatWeb
+
+**Vulnerability Scanning:**
+- Nuclei (ProjectDiscovery) - 3000+ templates
+- Nikto
+- Nmap with NSE scripts
+
+**URL Discovery:**
+- Waybackurls (Tomnomnom)
+- GAU (lc)
+- Katana (ProjectDiscovery)
+
+**Infrastructure:**
+- Nmap - Network scanning
+- WHOIS - Registration data
+- OpenSSL - Certificate analysis
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
+Contributions are welcome! Here's how you can help:
+
+1. **Report Bugs**: Open an issue with detailed reproduction steps
+2. **Suggest Features**: Share your ideas for improvements
+3. **Submit PRs**: Fork, create a feature branch, and submit a pull request
+4. **Improve Documentation**: Help make the docs clearer
+5. **Share Feedback**: Let us know how you're using FootSprinter
+
+## 📝 Changelog
+
+### Version 2.0 (Current)
+- ✨ Complete rewrite with modular architecture
+- ✨ Added command-line argument parsing
+- ✨ Comprehensive HTML report generation
+- ✨ Risk assessment and scoring system
+- ✨ Exploitation analysis module
+- ✨ Automated dependency installation
+- ✨ Professional Metasploit-style banner
+- ✨ Business impact analysis
+- ✨ Compliance considerations
+
+### Version 1.0
+- Initial release with basic footprinting features
+
+## 🎓 Learning Resources
+
+To get the most out of FootSprinter, consider learning:
+
+- **OSINT Techniques**: Open-source intelligence gathering
+- **Network Security**: Port scanning and service enumeration
+- **Web Application Security**: OWASP Top 10, vulnerability classes
+- **Penetration Testing**: Ethical hacking methodology
+- **Security Reporting**: Communicating findings effectively
+
+## 📞 Support & Contact
+
+- **Issues**: [GitHub Issues](https://github.com/i-m-rushil/footsprinter/issues)
+- **Author**: Aarham Labs (Rushil P. Shah)
+- **Updates**: Watch the repository for updates
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+## ⚠️ Disclaimer
+
+The author and contributors are not responsible for misuse or damage caused by this tool. Use FootSprinter responsibly and ethically. This tool is provided "as is" without warranty of any kind.
+
+**Remember**: With great power comes great responsibility. Use your skills to make the internet more secure, not less.
 
 ---
 
-**Disclaimer:** The author is not responsible for misuse or damage caused by this tool. Use at your own risk.
+<p align="center">
+  <strong>Made with ❤️ by security professionals, for security professionals</strong>
+</p>
 
+<p align="center">
+  ⭐ Star this repository if you find it useful!
+</p>
