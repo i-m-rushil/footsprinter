@@ -74,7 +74,8 @@ fi
 #######################
 # Prompt for target domain
 #######################
-read -rp $'\n' "Enter target domain (e.g. basrahgas.com): " TARGET
+echo ""
+read -rp "Enter target domain (e.g. basrahgas.com): " TARGET
 TARGET="${TARGET//https:\/\//}"
 TARGET="${TARGET//http:\/\//}"
 TARGET="${TARGET%%/}"
