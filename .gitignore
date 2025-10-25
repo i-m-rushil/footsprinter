@@ -1,0 +1,22 @@
+# FootSprinter output directories
+FootSprinter_*/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific
+Thumbs.db
+desktop.ini
+
