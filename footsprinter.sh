@@ -355,7 +355,7 @@ if command -v subfinder >/dev/null 2>&1; then
     fi
     
     # Assetfinder
-    if command -v assetfinder >/dev/null 2>&1; then
+if command -v assetfinder >/dev/null 2>&1; then
         info "Running Assetfinder..."
         assetfinder --subs-only "$TARGET" > "$OUTDIR/raw/assetfinder.txt" 2>/dev/null || warn "Assetfinder failed"
         ok "Assetfinder complete"
@@ -388,6 +388,9 @@ if command -v amass >/dev/null 2>&1; then
         cat "$OUTDIR/final/all_subdomains.txt" | httpx -silent -threads 50 -timeout 10 -no-color -o "$OUTDIR/final/live_hosts.txt" 2>/dev/null || warn "httpx failed"
         local live_count=$(wc -l < "$OUTDIR/final/live_hosts.txt" 2>/dev/null || echo 0)
         ok "Found $live_count live hosts"
+    else
+        touch "$OUTDIR/final/live_hosts.txt"
+        ok "No subdomains to probe"
     fi
     
     # Check for common weak/typosquatting domains
@@ -439,9 +442,11 @@ scan_ports() {
     
     # Parse open ports
     if [ -f "$OUTDIR/raw/nmap_scan.txt" ] || [ -f "$OUTDIR/raw/nmap_full.txt" ]; then
-        grep "^[0-9]" "$OUTDIR/raw/nmap"*.txt 2>/dev/null | grep "open" > "$OUTDIR/final/open_ports.txt" || true
+        grep "^[0-9]" "$OUTDIR/raw/nmap"*.txt 2>/dev/null | grep "open" > "$OUTDIR/final/open_ports.txt" || touch "$OUTDIR/final/open_ports.txt"
         local port_count=$(wc -l < "$OUTDIR/final/open_ports.txt" 2>/dev/null || echo 0)
         ok "Found $port_count open ports"
+    else
+        touch "$OUTDIR/final/open_ports.txt"
     fi
     
     # Quick UDP scan on common ports
@@ -1383,13 +1388,16 @@ EOF
     sed -i "s|RISK_CLASS|$risk_class|g" "$report_file"
     
     # Insert file contents (with HTML escaping)
+    export REPORT_FILE="$report_file"
+    export OUTDIR_PATH="$OUTDIR"
     python3 << 'PYTHON_SCRIPT'
 import sys
 import html
 import re
+import os
 
-report_file = sys.argv[1]
-outdir = sys.argv[2]
+report_file = os.environ.get('REPORT_FILE', '')
+outdir = os.environ.get('OUTDIR_PATH', '')
 
 with open(report_file, 'r') as f:
     content = f.read()
@@ -1466,9 +1474,13 @@ with open(report_file, 'w') as f:
     f.write(content)
 
 PYTHON_SCRIPT
-    python3 -c "import sys; sys.argv = ['', '$report_file', '$OUTDIR']" 2>/dev/null || warn "Report population incomplete"
     
-    ok "HTML report generated: $report_file"
+    if [ $? -eq 0 ]; then
+        ok "HTML report generated: $report_file"
+    else
+        warn "Report generation completed with warnings"
+        ok "HTML report: $report_file"
+    fi
     
     # Create text summary
     {
