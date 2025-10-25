@@ -199,8 +199,10 @@ done
 
     if [ "${#missing_apt[@]}" -gt 0 ]; then
         warn "Installing missing packages: ${missing_apt[*]}"
+        progress "Updating package lists..."
         apt-get update -qq
-        DEBIAN_FRONTEND=noninteractive apt-get install -y "${missing_apt[@]}" 2>&1 | grep -v "^$" || true
+        progress "Installing packages (this may take 1-2 minutes)..."
+        DEBIAN_FRONTEND=noninteractive apt-get install -y "${missing_apt[@]}" >/dev/null 2>&1 || true
         ok "APT packages installed"
     else
         ok "All APT packages present"
@@ -209,6 +211,7 @@ done
     # Ensure Go is installed
 if ! command -v go >/dev/null 2>&1; then
         warn "Installing Go..."
+        progress "Downloading and installing Go (this may take a minute)..."
         apt-get install -y golang-go >/dev/null 2>&1
         ok "Go installed"
     else
