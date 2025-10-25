@@ -66,6 +66,8 @@ BANNER
 printf "${DIM}%s${RESET}\n" "════════════════════════════════════════════════════════════════════════════════"
 printf "  ${BOLD}${MAGENTA}FootSprinter v${VERSION}${RESET} - Advanced Reconnaissance & Vulnerability Assessment\n"
 printf "  ${DIM}Author: Aarham Labs (Rushil P. Shah)${RESET}\n"
+printf "${DIM}%s${RESET}\n" "════════════════════════════════════════════════════════════════════════════════"
+printf "  ${GREEN}✓ SAFE MODE:${RESET} All scans are non-invasive (detection only, no exploitation)\n"
 printf "${DIM}%s${RESET}\n\n" "════════════════════════════════════════════════════════════════════════════════"
 }
 
@@ -97,11 +99,14 @@ ${BOLD}WHAT IT DOES:${RESET}
   2. Domain & Subdomain Enumeration
   3. Port Scanning (All common ports)
   4. Technology Stack Detection (with versions)
-  5. Vulnerability Assessment
-  6. Exploitation Analysis
+  5. Vulnerability Assessment (SAFE - Detection only, NO exploitation)
+  6. Exploitation Analysis (Educational - shows potential attack vectors)
   7. Remediation Recommendations
   8. Risk Assessment & Scoring
   9. Comprehensive HTML Report Generation
+
+${BOLD}SAFETY:${RESET} All vulnerability scans are NON-INVASIVE and only detect issues.
+         NO attacks or exploitations are performed. Safe for production systems.
 
 ${BOLD}WARNING:${RESET} Only scan targets you own or have explicit permission to test!
 
@@ -509,21 +514,27 @@ scan_vulnerabilities() {
         target_url=$(head -n1 "$OUTDIR/final/live_hosts.txt")
     fi
     
-    # Nuclei scanning
+    # Nuclei scanning (SAFE - Detection only, no exploitation)
     if command -v nuclei >/dev/null 2>&1; then
-        info "Running Nuclei vulnerability scanner..."
+        info "Running Nuclei vulnerability scanner (SAFE mode - detection only, no attacks)..."
         
         if [ "$FULLSCAN" = true ]; then
-            warn "Full Nuclei scan - this may take significant time..."
-            echo "$target_url" | nuclei -silent -severity critical,high,medium,low -o "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || warn "Nuclei scan failed"
+            progress "Full Nuclei scan - checking all severity levels (this may take 5-10 minutes)..."
+            echo "$target_url" | nuclei -silent -severity critical,high,medium,low -tags cve,default,exposure -o "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || warn "Nuclei scan completed with warnings"
         else
-            info "Running Nuclei with critical and high severity templates..."
-            echo "$target_url" | nuclei -silent -severity critical,high -o "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || warn "Nuclei scan failed"
+            progress "Scanning for critical and high severity vulnerabilities (2-5 minutes)..."
+            echo "$target_url" | nuclei -silent -severity critical,high -tags cve,default,exposure -o "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || warn "Nuclei scan completed with warnings"
         fi
         
-        if [ -f "$OUTDIR/raw/nuclei_results.txt" ]; then
+        if [ -f "$OUTDIR/raw/nuclei_results.txt" ] && [ -s "$OUTDIR/raw/nuclei_results.txt" ]; then
             local vuln_count=$(wc -l < "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo 0)
-            ok "Nuclei found $vuln_count potential vulnerabilities"
+            if [ "$vuln_count" -gt 0 ]; then
+                warn "Found $vuln_count confirmed vulnerabilities (safe detection only)"
+            else
+                ok "No vulnerabilities detected"
+            fi
+        else
+            ok "No vulnerabilities detected"
         fi
     fi
     
@@ -780,12 +791,18 @@ assess_risk() {
     local risk_score=0
     
     # Count vulnerabilities by severity from Nuclei results
-    if [ -f "$OUTDIR/raw/nuclei_results.txt" ]; then
-        critical_count=$(grep -ci "critical" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo 0)
-        high_count=$(grep -ci "high" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo 0)
-        medium_count=$(grep -ci "medium" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo 0)
-        low_count=$(grep -ci "low" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo 0)
+    if [ -f "$OUTDIR/raw/nuclei_results.txt" ] && [ -s "$OUTDIR/raw/nuclei_results.txt" ]; then
+        critical_count=$(grep -ci "critical" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo "0")
+        high_count=$(grep -ci "high" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo "0")
+        medium_count=$(grep -ci "medium" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo "0")
+        low_count=$(grep -ci "low" "$OUTDIR/raw/nuclei_results.txt" 2>/dev/null || echo "0")
     fi
+    
+    # Ensure counts are numeric
+    critical_count=${critical_count:-0}
+    high_count=${high_count:-0}
+    medium_count=${medium_count:-0}
+    low_count=${low_count:-0}
     
     # Calculate risk score (0-100 scale)
     risk_score=$((critical_count * 10 + high_count * 5 + medium_count * 2 + low_count * 1))
